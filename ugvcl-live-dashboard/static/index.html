@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UGVCL Smart Meter Live Monitor</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <h1 id="appTitle">UGVCL Smart Meter Live Monitor</h1>
+    <p class="sub" id="appSub">Data received, communication and device inventory across CLR-1 to CLR-4</p>
+  </div>
+  <div class="top-right">
+    <div id="statusPill" class="pill pill-wait" role="status" aria-live="polite"><span class="pill-icon" aria-hidden="true"></span><span id="statusText">Connecting&hellip;</span></div>
+    <div id="updated" class="muted small">&nbsp;</div>
+    <button id="themeBtn" class="btn" type="button" aria-label="Toggle light or dark theme">Theme</button>
+  </div>
+</header>
+
+<main>
+  <section class="toolbar" aria-label="Choose date">
+    <div class="tb-group" role="group" aria-label="Date">
+      <button id="dPrev" class="btn" type="button" aria-label="Previous day">&#9664; Previous day</button>
+      <input id="dDate" type="date" aria-label="Date to view">
+      <button id="dNext" class="btn" type="button" aria-label="Next day">Next day &#9654;</button>
+      <button id="dYest" class="btn" type="button">Yesterday</button>
+      <button id="dToday" class="btn" type="button">Today</button>
+    </div>
+    <div class="tb-group">
+      <label class="field">Trend <select id="dTrend"><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option></select></label>
+      <button id="dRefresh" class="btn" type="button" title="Run the queries again for this date">Refresh</button>
+    </div>
+    <div id="dLabel" class="tb-label"></div>
+  </section>
+
+  <div id="alerts" class="alerts" hidden></div>
+
+  <section class="kpis" id="kpis" aria-label="Network totals"></section>
+
+  <section class="card cc" id="ccCard">
+    <div class="row-between">
+      <h2>Communication check <span class="muted">paste meter serials: found in Last Communication = communication, not found = non-communication</span></h2>
+    </div>
+    <div class="cc-input">
+      <textarea id="ccText" rows="5" spellcheck="false" aria-label="Meter serial numbers" placeholder="Paste meter serial numbers here, one per line or separated by commas or spaces. Example: US0358024"></textarea>
+      <div class="cc-actions">
+        <button id="ccRun" class="btn primary" type="button">Check meters</button>
+        <label class="btn" for="ccFile">Load .txt / .csv<input id="ccFile" type="file" accept=".txt,.csv,text/plain,text/csv" hidden></label>
+        <button id="ccClear" class="btn" type="button">Clear</button>
+        <span id="ccCount" class="muted small"></span>
+      </div>
+      <div id="ccProgress" class="cc-progress" hidden><div class="bar"><i id="ccBar" style="width:0%"></i></div><span id="ccProgressTxt" class="muted small"></span></div>
+      <div id="ccMsg" class="cc-msg" role="status" aria-live="polite" hidden></div>
+    </div>
+    <div id="ccResult" hidden>
+      <div class="kpis kpis-sm" id="ccKpis"></div>
+      <div class="cc-charts">
+        <div><h3>By CLR</h3><div class="chart-box h260"><canvas id="chCcClr" role="img" aria-label="Stacked bar chart of communicating and non-communicating meters per CLR"></canvas></div></div>
+        <div><h3>Last communication of found meters</h3><div class="chart-box h260"><canvas id="chCcAge" role="img" aria-label="Bar chart of found meters by time since last communication"></canvas></div></div>
+      </div>
+      <div class="row-between cc-tools">
+        <div class="cc-filters">
+          <label class="field">Show <select id="ccFilter"><option value="all">All</option><option value="Communication">Communication</option><option value="Non-communication">Non-communication</option><option value="Unknown">Unknown</option></select></label>
+          <label class="field">Search <input id="ccSearch" type="search" placeholder="serial" autocomplete="off"></label>
+        </div>
+        <button id="ccCsv" class="btn" type="button">Download CSV</button>
+      </div>
+      <div class="table-wrap cc-table"><table id="ccTable"></table></div>
+      <p id="ccTableNote" class="note"></p>
+    </div>
+  </section>
+
+  <section class="grid">
+    <article class="card span2">
+      <h2>Data received <span class="muted" id="tCoverage">today, % of expected meters</span></h2>
+      <div class="chart-box h300"><canvas id="chCoverage" role="img" aria-label="Grouped bar chart of data received by profile for each CLR and the total"></canvas></div>
+      <p class="note" id="expNote" hidden>Expected uses today's meter list, so older dates can differ slightly if meters were added or removed since. Billing is the month of the selected date.</p>
+    </article>
+    <article class="card">
+      <h2>Midnight data trend <span class="muted" id="tTrend">last 7 days, % of expected meters</span></h2>
+      <div class="chart-box h300"><canvas id="chMid7" role="img" aria-label="Line chart of midnight data coverage over the last 7 days by CLR"></canvas></div>
+      <p class="note" id="trendNote"></p>
+    </article>
+
+    <article class="card span3">
+      <h2>Load profile by hour <span class="muted" id="tHourly">meters with load-profile data in each hour</span></h2>
+      <div class="chart-box h260"><canvas id="chHourly" role="img" aria-label="Line chart of meters reporting load profile per hour by CLR and total"></canvas></div>
+      <p class="note">The total is about four times each CLR. Click "Total" in the legend to hide it and zoom in on the CLRs.</p>
+    </article>
+
+    <article class="card span2">
+      <h2>Communication type <span class="muted">meters per CLR, current</span></h2>
+      <div class="chart-box h260"><canvas id="chComm" role="img" aria-label="Grouped bar chart of RF and GPRS meters per CLR"></canvas></div>
+      <p class="note">RF = ConnectUsing is NetworkUdp. GPRS = every other templated meter. Unclassified = meters in neither group.</p>
+    </article>
+    <article class="card">
+      <h2>Midnight not received <span class="muted" id="tNonComm">expected minus received</span></h2>
+      <div class="chart-box h260"><canvas id="chNonComm" role="img" aria-label="Bar chart of meters with no midnight data yet today by CLR"></canvas></div>
+      <p class="note">Counts early in the day include meters that simply haven't reported yet.</p>
+    </article>
+
+    <article class="card span3">
+      <h2>Metering mode <span class="muted">meters per CLR, current</span></h2>
+      <div class="chart-box h260"><canvas id="chMode" role="img" aria-label="Grouped bar chart of metering mode counts per CLR"></canvas></div>
+    </article>
+
+    <article class="card span3">
+      <div class="row-between">
+        <h2>Attribute explorer <span class="muted">meters per attribute value, by CLR</span></h2>
+        <label class="field">Attribute <select id="attrSelect" disabled><option>Loading&hellip;</option></select></label>
+      </div>
+      <div class="chart-box h300"><canvas id="chAttr" role="img" aria-label="Grouped bar chart of meter counts by value of the selected attribute"></canvas></div>
+      <p id="attrNote" class="note">Pick any device attribute to see how meters split across its values (top 10 values overall; blank values shown as "(blank)").</p>
+    </article>
+
+    <article class="card span3">
+      <div class="row-between"><h2>All numbers <span class="muted">the data behind every chart, for the selected date</span></h2><button id="detailCsv" class="btn" type="button">Download CSV</button></div>
+      <div class="table-wrap"><table id="detailTable"></table></div>
+    </article>
+
+    <article class="card span3">
+      <h2>Data source health</h2>
+      <div class="table-wrap"><table id="healthTable"></table></div>
+      <details class="defs">
+        <summary>How each number is calculated</summary>
+        <ul>
+          <li><b>Total meters</b>: devices with serial number starting "U" that are not templates (SQL Server device master, per CLR).</li>
+          <li><b>Expected</b>: measuring points of that profile on those devices (midnight, billing, load profile, instant result types for the CLR).</li>
+          <li><b>Received</b>: distinct measuring points with a reading today (billing: this month's reading) in the Postgres result tables <code>result_24h_double</code>, <code>result_1month_double</code>, <code>result_30m_double</code>, <code>result_0s_double</code>. Same logic as the "All data summary today (MPRT)" dashboard.</li>
+          <li><b>Percent</b> = received / expected, capped at 100. If received is above expected the tile is flagged.</li>
+          <li>"Today" follows the database server's date, exactly as in the Grafana dashboards. A past date counts measuring points whose reading is stamped on that date (billing: that month).</li>
+          <li><b>Total</b> adds the four CLRs. A percentage total is total received divided by total expected, not an average of the four percentages. If a CLR has no data the total says how many CLRs it covers.</li>
+          <li>Communication type, metering mode and the attribute explorer show the current device master, not a past date.</li>
+        </ul>
+      </details>
+    </article>
+  </section>
+</main>
+
+<script src="vendor/chart.umd.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

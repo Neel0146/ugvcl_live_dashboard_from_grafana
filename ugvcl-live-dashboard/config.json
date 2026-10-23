@@ -1,0 +1,89 @@
+{
+  "grafana_url": "https://grafana.ugvcl.net:3000",
+  "verify_tls": false,
+  "api_token": "",
+  "request_timeout_seconds": 240,
+  "refresh_seconds": {
+    "devices": 300,
+    "expected": 600,
+    "midnight": 120,
+    "billing": 300,
+    "load_profile": 180,
+    "instant": 180,
+    "lp_hourly": 900,
+    "metering_mode": 900
+  },
+  "clrs": {
+    "CLR1": {
+      "mssql_uid": "ben8it90cadq8d",
+      "postgres_uid": "ben8jdqkzxs74b",
+      "result_types": {
+        "midnight": 1605,
+        "billing": 1376,
+        "load_profile": 1722,
+        "instant": 1635
+      },
+      "metering_mode_attr_key": 1791,
+      "last_comm_attr_keys": [
+        2027,
+        1872,
+        1728
+      ]
+    },
+    "CLR2": {
+      "mssql_uid": "ben8t031ounswe",
+      "postgres_uid": "aen8rcvlaz7r4c",
+      "result_types": {
+        "midnight": 2607,
+        "billing": 2378,
+        "load_profile": 2724,
+        "instant": 2637
+      },
+      "metering_mode_attr_key": 592,
+      "last_comm_attr_keys": [
+        873,
+        751,
+        645
+      ]
+    },
+    "CLR3": {
+      "mssql_uid": "een8uf46yes5cf",
+      "postgres_uid": "cen8s12bs9fr4c",
+      "result_types": {
+        "midnight": 715,
+        "billing": 486,
+        "load_profile": 832,
+        "instant": 745
+      },
+      "metering_mode_attr_key": 684,
+      "last_comm_attr_keys": [
+        800,
+        710,
+        606
+      ]
+    },
+    "CLR4": {
+      "mssql_uid": "cen8tob820ydcc",
+      "postgres_uid": "ben5kzaupn30ge",
+      "result_types": {
+        "midnight": 4197,
+        "billing": 3968,
+        "load_profile": 4314,
+        "instant": 4227
+      },
+      "metering_mode_attr_key": 748,
+      "last_comm_attr_keys": [
+        928,
+        779,
+        674
+      ]
+    }
+  },
+  "max_parallel_queries": 4,
+  "comm_check": {
+    "chunk_size": 400,
+    "max_serials": 20000
+  },
+  "app_title": "UGVCL Smart Meter Live Monitor",
+  "app_subtitle": "Data received, communication and device inventory across CLR-1 to CLR-4"
+}
